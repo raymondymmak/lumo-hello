@@ -1,0 +1,2 @@
+*.sh text eol=lf
+.github/oracle.sha256 text eol=lf

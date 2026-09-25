@@ -1,0 +1,30 @@
+[
+  {
+    "statement": "Unauthenticated POST /items with a JSON body returns 401 (not 2xx).",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh unauth-create",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "Authenticated POST /items with {\"name\":\"demo\"} and Bearer hello-demo-token returns 201 with string id and name equal to demo.",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh auth-create",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "GET /items/:id for the created id returns 200 with the same name.",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh get-item",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "README documents how to run Track A vs Track B in ≤10 minutes.",
+    "verifierType": "HUMAN",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "CI runs unit tests and fails if scripts/oracle.sh content hash ≠ pinned hash in .github/oracle.sha256.",
+    "verifierType": "HUMAN",
+    "evidenceRequired": true
+  }
+]

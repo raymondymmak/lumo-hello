@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Unit tests (Track A)
+        run: npm test
+
+      - name: Fail if scripts/oracle.sh drifts from the pinned hash
+        run: sha256sum --check .github/oracle.sha256
+
+      - name: Run held-out oracle against a started server (Track B)
+        run: |
+          set -euo pipefail
+          npm start > /tmp/lumo-hello.log 2>&1 &
+          echo $! > /tmp/lumo-hello.pid
+          cleanup() {
+            if [[ -f /tmp/lumo-hello.pid ]]; then
+              kill "$(cat /tmp/lumo-hello.pid)" 2>/dev/null || true
+            fi
+          }
+          trap cleanup EXIT
+          ready=0
+          for _ in $(seq 1 50); do
+            if curl -sf "http://127.0.0.1:3847/health" >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 0.1
+          done
+          if [[ "$ready" != "1" ]]; then
+            echo "Server did not become healthy. Log:" >&2
+            cat /tmp/lumo-hello.log >&2 || true
+            exit 1
+          fi
+          bash scripts/oracle.sh unauth-create
+          bash scripts/oracle.sh auth-create
+          bash scripts/oracle.sh get-item
