@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notes</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="sheet">
+      <header class="top">
+        <div>
+          <h1>Notes</h1>
+          <p class="lede">Create a note only when you are signed in.</p>
+        </div>
+        <div class="session">
+          <p id="auth-status" class="status">Signed out</p>
+          <button id="sign-in" type="button">Sign in (demo)</button>
+          <button id="sign-out" type="button" hidden>Sign out</button>
+        </div>
+      </header>
+
+      <form id="create-form" class="composer">
+        <label for="note-name">Name</label>
+        <input
+          id="note-name"
+          name="name"
+          type="text"
+          maxlength="200"
+          autocomplete="off"
+          placeholder="Note name"
+        />
+        <button id="create" type="submit">Create</button>
+      </form>
+
+      <p id="error" class="error" role="alert" hidden></p>
+
+      <section class="list-wrap" aria-labelledby="list-heading">
+        <h2 id="list-heading">Your notes</h2>
+        <p id="empty" class="empty">No notes yet.</p>
+        <ul id="notes"></ul>
+      </section>
+
+      <p class="hint">
+        Sign in stores the demo bearer token
+        <code>hello-demo-token</code> in this browser’s local storage. Sign out
+        clears it. Nothing here is a secret.
+      </p>
+    </main>
+    <script src="/notes.js"></script>
+  </body>
+</html>

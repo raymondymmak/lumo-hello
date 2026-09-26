@@ -1,0 +1,31 @@
+[
+  {
+    "statement": "Unauthenticated POST /items with a JSON body returns 401 (not 2xx).",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh unauth-create",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "Authenticated POST /items with {\"name\":\"demo\"} and Bearer hello-demo-token returns 201 with string id and name equal to demo.",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh auth-create",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "After an authenticated create, GET /items returns a list containing an item named demo (or GET /items/:id returns 200 with name demo).",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh get-item",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "In the Notes UI while signed out, submitting Create shows a visible error and does not add a new note row.",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh ui-signed-out-create",
+    "evidenceRequired": true
+  },
+  {
+    "statement": "README documents Track A vs Track B (UI-visible) in ≤10 minutes; CI pins scripts/oracle.sh hash.",
+    "verifierType": "HUMAN",
+    "evidenceRequired": true
+  }
+]
