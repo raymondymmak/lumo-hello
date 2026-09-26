@@ -1,12 +1,12 @@
 # Track B — held-out oracle
 
-Track B grades the running server from outside the process. [`scripts/oracle.sh`](../scripts/oracle.sh) speaks HTTP with curl and reads JSON with jq. It does not import `src/`, `test/`, or any test helper. A mock inside Vitest cannot satisfy it.
+Track B grades the running server from outside the process. [`scripts/oracle.sh`](../scripts/oracle.sh) speaks HTTP with curl and reads JSON with jq. The `ui-signed-out-create` subcommand launches headless Chromium through [`scripts/oracle-ui.mjs`](../scripts/oracle-ui.mjs) and drives the Notes page. Neither file imports `src/`, `test/`, or any test helper. A mock inside Vitest cannot satisfy it.
 
 The script is the checkpointer for the MACHINE rows in [`lumo/criteria.json`](../lumo/criteria.json). Exit 0 only when that subcommand’s statement is true against whatever is actually listening.
 
 ## Freeze path
 
-Do this **before** an agent is allowed to edit the API:
+Do this **before** an agent is allowed to edit the app:
 
 1. Open [`lumo/criteria.json`](../lumo/criteria.json).
 2. Paste it into `lumo task criteria set`.
@@ -17,20 +17,22 @@ Lumo then runs:
 | --- | --- |
 | Unauthenticated `POST /items` with a JSON body returns **401** (not 2xx). | `bash scripts/oracle.sh unauth-create` |
 | Authenticated `POST /items` with `{ "name": "demo" }` and Bearer `hello-demo-token` returns **201** and JSON with a string `id` and `name` equal to `demo`. | `bash scripts/oracle.sh auth-create` |
-| `GET /items/:id` for that created id returns **200** with the same name. | `bash scripts/oracle.sh get-item` |
+| After an authenticated create, `GET /items` returns a list containing an item named `demo` (or `GET /items/:id` returns **200** with that name). | `bash scripts/oracle.sh get-item` |
+| In the Notes UI while signed out, submitting Create shows a visible error and does not add a new note row. | `bash scripts/oracle.sh ui-signed-out-create` |
 
-`lumo verify` stays red until those processes exit 0. The two HUMAN rows (this README story, and the CI hash pin) are closed by a person, not by the shell script.
+`lumo verify` stays red until those processes exit 0. The HUMAN row (README story in ≤10 minutes, and the CI hash pin) is closed by a person, not by the shell script.
 
-Agents are instructed not to edit `scripts/oracle.sh` or [`.github/oracle.sha256`](../.github/oracle.sha256).
+Agents are instructed not to edit `scripts/oracle.sh`, `scripts/oracle-ui.mjs`, or [`.github/oracle.sha256`](../.github/oracle.sha256).
 
 ## Run it
 
-From a clone, with Node 20+ and `curl` / `jq` on the path:
+From a clone, with Node 20+ , `curl` / `jq`, and Chromium installed for Playwright:
 
 ```bash
 npm install
+npx playwright install chromium
 npm start          # optional; the oracle starts the server when /health is down
-npm run oracle     # all three subcommands
+npm run oracle     # all four subcommands
 ```
 
 Or, against a server you already started (default `PORT=3847`):
@@ -39,9 +41,12 @@ Or, against a server you already started (default `PORT=3847`):
 bash scripts/oracle.sh unauth-create
 bash scripts/oracle.sh auth-create
 bash scripts/oracle.sh get-item
+bash scripts/oracle.sh ui-signed-out-create
 ```
 
-`get-item` creates an item itself, then fetches that id. It does not depend on leftover memory from `auth-create`, and it does not read the in-memory `Map` directly. Both steps are HTTP.
+`get-item` creates an item itself, then fetches that id. It does not depend on leftover memory from `auth-create`, and it does not read the in-memory `Map` directly. Both steps are HTTP. The script uses `GET /items/:id`, which is the second half of that criterion. `GET /items` (a JSON array) is what the page renders; the UI check below compares the on-screen rows to that array.
+
+`ui-signed-out-create` does not need the API subcommands to have run first. On a fresh process the list is empty and must stay empty. If earlier commands already created notes, the list must stay exactly those notes.
 
 If the oracle starts the server during `all`, it stops that process on the way out. A server that was already healthy is left running. Single subcommands also leave a server they started, so the next subcommand hits the same process.
 
@@ -55,27 +60,40 @@ Override the port with `PORT`. Example: `PORT=3847 npm run oracle`.
 
 **get-item.** Performs that same authenticated create, reads `id`, then `GET /items/<id>`. Status must be `200`. The fetched `name` must be `demo`, and the fetched `id` must be the id just created.
 
-A process that is not this app can pass only by implementing those responses. Pointing the script at a stub that returns 200 for every path fails `unauth-create`. Returning 200 instead of 201 fails `auth-create`. Creating an item that GET cannot read back fails `get-item`.
+**ui-signed-out-create.** Opens `GET /` in headless Chromium, clears `localStorage`, and reloads so the session cannot already be signed in. It requires:
+
+- The status text is `Signed out`.
+- The rows in `#notes` match `GET /items` before the click (so an empty fake list does not pass while the server already has notes).
+- Filling `#note-name` with a unique name and clicking `#create` makes `#error` visible, with non-empty text, and it stays visible.
+- For the next second, `#notes` does not change and does not contain that name.
+- `GET /items` does not gain that name.
+- After a reload, the on-screen list is still the pre-click list.
+
+A process that is not this app can pass the curl checks only by implementing those responses. Pointing the script at a stub that returns 200 for every path fails `unauth-create`. Returning 200 instead of 201 fails `auth-create`. Creating an item that GET cannot read back fails `get-item`. A page that still inserts a row, hides the error, or only pretends to list notes fails `ui-signed-out-create`.
+
+The page this repo serves shows the error `Sign in to create a note.` and does not call `POST` until the demo token is in `localStorage`. The oracle checks the visible result, not the source of `public/notes.js`.
 
 ## Hash pin
 
 The pin was produced from the repo root:
 
 ```bash
-sha256sum scripts/oracle.sh > .github/oracle.sha256
+sha256sum scripts/oracle.sh scripts/oracle-ui.mjs > .github/oracle.sha256
 ```
 
-CI runs `sha256sum --check .github/oracle.sha256` before it trusts the oracle. If `scripts/oracle.sh` changes and the pin file does not, that job fails. Regenerating the pin is a one-line diff, so a review can see that the held-out script moved. The pin is not a lock against someone who is allowed to commit both files. The hold-out is the rule plus review: agents do not edit the oracle or the pin; humans notice when the pin changes.
+CI runs `sha256sum --check .github/oracle.sha256` before it trusts the oracle. If either held-out file changes and the pin file does not, that job fails. Regenerating the pin is a small diff, so a review can see that the held-out script moved. The pin is not a lock against someone who is allowed to commit both files. The hold-out is the rule plus review: agents do not edit the oracle or the pin; humans notice when the pin changes.
 
 ## What Track A can miss that this catches
 
-| Broken product | Track A, after the agent edits tests | Track B |
+| Broken product | Track A, after the agent edits tests — or edits only the page | Track B |
 | --- | --- | --- |
 | Unauthenticated POST returns 200 | Green if that case was deleted or expects 200 | `unauth-create` exits non-zero |
 | Auth POST returns 200, or `name` is not `demo` | Green if the assertion was loosened | `auth-create` exits non-zero |
-| Create works, GET does not | Green if the GET test was removed | `get-item` exits non-zero |
+| Create works, GET by id does not | Green if the GET test was removed | `get-item` exits non-zero |
 | Tests mock `createApp` while `src/server.js` is wrong | Green | Fails, because curl hits `npm start` |
+| Signed-out **Create** still appends a row, or shows no error | Green, because Vitest never clicks the page | `ui-signed-out-create` exits non-zero |
+| The list is a hardcoded empty `<ul>` while `GET /items` has notes | Green if the HTML smoke test only looks for the word “Notes” | `ui-signed-out-create` exits non-zero |
 
 ## Without a Lumo seat
 
-You can still run the frozen checks. The checkpointer strings in `lumo/criteria.json` are ordinary shell. `npm run oracle` is the same three commands CI runs after it has started the server.
+You can still run the frozen checks. The checkpointer strings in `lumo/criteria.json` are ordinary shell. `npm run oracle` is the same four commands CI runs after it has started the server and installed Chromium.

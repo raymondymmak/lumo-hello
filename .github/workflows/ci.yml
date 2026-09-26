@@ -21,8 +21,11 @@ jobs:
       - name: Unit tests (Track A)
         run: npm test
 
-      - name: Fail if scripts/oracle.sh drifts from the pinned hash
+      - name: Fail if the held-out oracle drifts from the pinned hash
         run: sha256sum --check .github/oracle.sha256
+
+      - name: Install Chromium for the UI oracle
+        run: npx playwright install --with-deps chromium
 
       - name: Run held-out oracle against a started server (Track B)
         run: |
@@ -51,3 +54,4 @@ jobs:
           bash scripts/oracle.sh unauth-create
           bash scripts/oracle.sh auth-create
           bash scripts/oracle.sh get-item
+          bash scripts/oracle.sh ui-signed-out-create

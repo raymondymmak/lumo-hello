@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
 
 /** Demo constant. Not a secret. Public on purpose. */
@@ -21,6 +23,10 @@ export function createApp() {
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ ok: true });
+  });
+
+  app.get("/items", (_req, res) => {
+    res.status(200).json([...items.values()]);
   });
 
   app.post("/items", (req, res) => {
@@ -46,6 +52,21 @@ export function createApp() {
     }
     return res.status(200).json(item);
   });
+
+  const publicDir = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../public",
+  );
+  app.use(
+    express.static(publicDir, {
+      index: "index.html",
+      etag: false,
+      lastModified: false,
+      setHeaders(res) {
+        res.setHeader("Cache-Control", "no-store");
+      },
+    }),
+  );
 
   return app;
 }

@@ -72,4 +72,29 @@ describe("lumo-hello API", () => {
     );
     expect(res.status).toBe(404);
   });
+
+  it("GET /items returns [] and then the created note", async () => {
+    const app = createApp();
+    const empty = await request(app).get("/items");
+    expect(empty.status).toBe(200);
+    expect(empty.body).toEqual([]);
+
+    const created = await request(app)
+      .post("/items")
+      .set("Authorization", `Bearer ${DEMO_TOKEN}`)
+      .send({ name: "demo" });
+
+    const list = await request(app).get("/items");
+    expect(list.status).toBe(200);
+    expect(list.body).toEqual([{ id: created.body.id, name: "demo" }]);
+  });
+
+  it("GET / serves the Notes page", async () => {
+    const res = await request(createApp()).get("/");
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/html/);
+    expect(res.text).toContain("Notes");
+    expect(res.text).toContain("Sign in (demo)");
+    expect(res.text).toContain("Create");
+  });
 });
