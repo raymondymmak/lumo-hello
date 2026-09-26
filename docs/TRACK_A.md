@@ -1,14 +1,27 @@
 # Track A — circular oracle
 
-Track A is the suite the implementer owns. In this repo that is Vitest under `test/`, run with `npm test`. The tests import `createApp` from `src/app.js` and send real HTTP requests through Supertest. They do not stub the auth check.
+Track A is the suite the implementer owns. In this repo that is Vitest under `test/`, run with `npm test`. The tests import `createApp` from `src/app.js` and send real HTTP requests through Supertest. They do not stub the auth check. They also do not open the Notes page or click **Create**.
 
-That is the honest version. CI can still be green while the product is wrong, because the same agent that edits the handler can edit the tests. The unit-test job only asks “do the tests pass?” It does not ask “do these tests still mean the ticket?”
+That is the honest version. CI can still be green while the product is wrong, because the same agent that edits the page can edit the tests — or can leave the tests alone and break only `public/notes.js`. The unit-test job only asks “do the tests pass?” It does not ask “does signed-out Create still refuse to add a row?”
 
-The ticket is: unauthenticated `POST /items` returns **401**; authenticated `POST /items` with `{ "name": "demo" }` and `Authorization: Bearer hello-demo-token` returns **201** with a string `id` and `name` equal to `demo`.
+The ticket on the page: signed out, **Create** shows a visible error and does not add a note. Signed in with the demo token, **Create** adds the note to the list. The API half of the same ticket: unauthenticated `POST /items` returns **401**; authenticated `POST /items` with `{ "name": "demo" }` and `Authorization: Bearer hello-demo-token` returns **201** with a string `id` and `name` equal to `demo`.
 
-## Failure modes
+## The UI can be wrong while `npm test` is green
 
-These are the cheats this track cannot see. None of them are in `test/`. They are what a later agent can commit while `npm test` stays green.
+`test/items.test.js` never loads `public/notes.js`. These are enough for a green Track A and a broken demo:
+
+- The click handler appends an `<li>` as soon as **Create** is pressed, then shows an error only as decoration. The API still returns 401 without a token, so every unit test passes. The list on screen grows anyway.
+- The page skips the sign-in check and `POST`s with no `Authorization` header. If a later edit also lets that `POST` return 201, the unit tests fail only when someone left the 401 assertion in place. If they deleted that assertion, both the API and the page are wrong and Track A is green. Even if the API stays correct and returns 401, a client that inserts the row before reading the response still looks done in Vitest.
+- A browser test the agent added (Playwright, a jsdom smoke test, anything under `test/`) mocks `fetch`, asserts that a button named Create exists, and never clicks it while `localStorage` is empty.
+- That browser test clicks **Sign in (demo)** first, then asserts a row appeared. The signed-out path is untested.
+- The test sets the error node’s text itself, then expects the string. The page’s submit handler is not what produced it.
+- `GET /` is asserted to contain the words “Sign in (demo)” and “Create”. That is true of the HTML file even when the script adds a row for everyone.
+
+None of those cheats are in `test/` today. They are what a later agent can commit, or what already happens if only the script in `public/` changes.
+
+## API failure modes
+
+These are the cheats this track cannot see on the HTTP side. None of them are in `test/`. They are what a later agent can commit while `npm test` stays green.
 
 ### 1. Assert the wrong status
 
@@ -33,7 +46,7 @@ vi.mock("../src/app.js", () => ({
 }));
 ```
 
-Or the route is replaced in the test with `(req, res) => res.status(201).json({ id: "x", name: "demo" })`. The suite exercises the mock. `npm start` still serves whatever is in `src/server.js`.
+Or the route is replaced in the test with `(req, res) => res.status(201).json({ id: "x", name: "demo" })`. The suite exercises the mock. `npm start` still serves whatever is in `src/server.js` and `public/`.
 
 Supertest is not this failure mode. Supertest is an in-process client. The failure mode is swapping out the app the client talks to.
 
@@ -54,9 +67,9 @@ The diff looks like a test fix. The API did not change into the ticket.
 
 ## What this repo’s tests actually do
 
-`test/items.test.js` checks 401 without a token, 401 with the wrong token, 201 with a string `id` and `name === "demo"`, then GET of that id, plus 404 and an empty name. They pass because `src/app.js` implements that behavior.
+`test/items.test.js` checks 401 without a token, 401 with the wrong token, 201 with a string `id` and `name === "demo"`, then GET of that id, `GET /items` as a JSON array, 404, an empty name, and that `GET /` returns the Notes HTML. They pass because `src/app.js` and `public/index.html` implement that behavior.
 
-They are still Track A. The next change can loosen them. Track B does not import this file. See [TRACK_B.md](TRACK_B.md).
+They are still Track A. The next change can loosen them, and a change that only touches `public/notes.js` does not even need to. The page can add a row while signed out and this file stays green. Track B does not import this file. It clicks the real page. See [TRACK_B.md](TRACK_B.md).
 
 ## Run it
 
@@ -65,4 +78,4 @@ npm install
 npm test
 ```
 
-No server process is required. The app is constructed inside the test process.
+No server process is required. The app is constructed inside the test process. No browser is required.

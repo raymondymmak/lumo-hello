@@ -12,18 +12,19 @@
     "evidenceRequired": true
   },
   {
-    "statement": "GET /items/:id for the created id returns 200 with the same name.",
+    "statement": "After an authenticated create, GET /items returns a list containing an item named demo (or GET /items/:id returns 200 with name demo).",
     "verifierType": "MACHINE",
     "checkpointer": "bash scripts/oracle.sh get-item",
     "evidenceRequired": true
   },
   {
-    "statement": "README documents how to run Track A vs Track B in ≤10 minutes.",
-    "verifierType": "HUMAN",
+    "statement": "In the Notes UI while signed out, submitting Create shows a visible error and does not add a new note row.",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh ui-signed-out-create",
     "evidenceRequired": true
   },
   {
-    "statement": "CI runs unit tests and fails if scripts/oracle.sh content hash ≠ pinned hash in .github/oracle.sha256.",
+    "statement": "README documents Track A vs Track B (UI-visible) in ≤10 minutes; CI pins scripts/oracle.sh hash.",
     "verifierType": "HUMAN",
     "evidenceRequired": true
   }
