@@ -46,6 +46,15 @@ function renderNotes(items) {
   emptyEl.hidden = items.length !== 0;
 }
 
+function appendOptimisticNote(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const li = document.createElement("li");
+  li.textContent = trimmed;
+  list.append(li);
+  emptyEl.hidden = true;
+}
+
 async function refreshList() {
   const response = await fetch("/items");
   if (!response.ok) {
@@ -76,7 +85,13 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const name = nameInput.value;
   if (!isSignedIn()) {
+    // DEMO — Track A circular oracle. DO NOT MERGE.
+    // The error is decoration. The row is painted before any request, so the
+    // list looks updated while POST /items is never sent. Vitest does not
+    // click Create, so `npm test` stays green. Track B's ui-signed-out-create
+    // oracle is what catches the extra <li>.
     showError("Sign in to create a note.");
+    appendOptimisticNote(name);
     return;
   }
 
