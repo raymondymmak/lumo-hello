@@ -1,6 +1,6 @@
 # Track B — held-out oracle
 
-Track B grades the running server from outside the process. [`scripts/oracle.sh`](../scripts/oracle.sh) speaks HTTP with curl and reads JSON with jq. The `ui-signed-out-create` subcommand launches headless Chromium through [`scripts/oracle-ui.mjs`](../scripts/oracle-ui.mjs) and drives the Notes page. Neither file imports `src/`, `test/`, or any test helper. A mock inside Vitest cannot satisfy it.
+Track B grades the running server from outside the process. [`scripts/oracle.sh`](../scripts/oracle.sh) speaks HTTP with curl and reads JSON with jq. The `ui-signed-out-create` and `ui-signed-out-upgrade` subcommands launch headless Chromium through [`scripts/oracle-ui.mjs`](../scripts/oracle-ui.mjs) and drive the Notes page. Neither file imports `src/`, `test/`, or any test helper. A mock inside Vitest cannot satisfy it.
 
 The script is the checkpointer for the MACHINE rows in [`lumo/criteria.json`](../lumo/criteria.json). Exit 0 only when that subcommand’s statement is true against whatever is actually listening.
 
@@ -19,6 +19,7 @@ Lumo then runs:
 | Authenticated `POST /items` with `{ "name": "demo" }` and Bearer `hello-demo-token` returns **201** and JSON with a string `id` and `name` equal to `demo`. | `bash scripts/oracle.sh auth-create` |
 | After an authenticated create, `GET /items` returns a list containing an item named `demo` (or `GET /items/:id` returns **200** with that name). | `bash scripts/oracle.sh get-item` |
 | In the Notes UI while signed out, submitting Create shows a visible error and does not add a new note row. | `bash scripts/oracle.sh ui-signed-out-create` |
+| In the Notes UI while signed out, clicking Upgrade to Pro shows a visible error, leaves the plan on Free, and does not unlock Pro. | `bash scripts/oracle.sh ui-signed-out-upgrade` |
 
 `lumo verify` stays red until those processes exit 0. The HUMAN row (README story in ≤10 minutes, and the CI hash pin) is closed by a person, not by the shell script.
 
@@ -32,7 +33,7 @@ From a clone, with Node 20+ , `curl` / `jq`, and Chromium installed for Playwrig
 npm install
 npx playwright install chromium
 npm start          # optional; the oracle starts the server when /health is down
-npm run oracle     # all four subcommands
+npm run oracle     # all five subcommands
 ```
 
 Or, against a server you already started (default `PORT=3847`):
@@ -42,6 +43,7 @@ bash scripts/oracle.sh unauth-create
 bash scripts/oracle.sh auth-create
 bash scripts/oracle.sh get-item
 bash scripts/oracle.sh ui-signed-out-create
+bash scripts/oracle.sh ui-signed-out-upgrade
 ```
 
 `get-item` creates an item itself, then fetches that id. It does not depend on leftover memory from `auth-create`, and it does not read the in-memory `Map` directly. Both steps are HTTP. The script uses `GET /items/:id`, which is the second half of that criterion. `GET /items` (a JSON array) is what the page renders; the UI check below compares the on-screen rows to that array.
@@ -69,9 +71,18 @@ Override the port with `PORT`. Example: `PORT=3847 npm run oracle`.
 - `GET /items` does not gain that name.
 - After a reload, the on-screen list is still the pre-click list.
 
-A process that is not this app can pass the curl checks only by implementing those responses. Pointing the script at a stub that returns 200 for every path fails `unauth-create`. Returning 200 instead of 201 fails `auth-create`. Creating an item that GET cannot read back fails `get-item`. A page that still inserts a row, hides the error, or only pretends to list notes fails `ui-signed-out-create`.
+**ui-signed-out-upgrade.** Opens `GET /` in headless Chromium, clears `localStorage`, and reloads. It requires:
 
-The page this repo serves shows the error `Sign in to create a note.` and does not call `POST` until the demo token is in `localStorage`. The oracle checks the visible result, not the source of `public/notes.js`.
+- The status text is `Signed out`, `#plan-status` is `Free`, `#pro-feature` is `data-state="locked"`, and `#checkout-receipt` is hidden.
+- `#upgrade` is enabled. Clicking it does not flip the plan to `Pro`, does not set `data-state="unlocked"`, and does not show the receipt.
+- `#error` becomes visible, with non-empty text, and stays visible while the plan stays Free for the next second.
+- After a reload the visitor is still signed out and Pro is still locked.
+- **Sign in (demo)** leaves the plan on Free. Clicking **Upgrade to Pro** then sets the plan to `Pro`, unlocks `#pro-feature`, and shows a receipt that mentions Pro.
+- **Sign out** returns the plan to `Free` and locks Pro again. A stored flag is not enough without the demo session.
+
+A process that is not this app can pass the curl checks only by implementing those responses. Pointing the script at a stub that returns 200 for every path fails `unauth-create`. Returning 200 instead of 201 fails `auth-create`. Creating an item that GET cannot read back fails `get-item`. A page that still inserts a row, hides the error, or only pretends to list notes fails `ui-signed-out-create`. A page that unlocks Pro, shows a checkout receipt, or skips the error while signed out fails `ui-signed-out-upgrade`.
+
+The page this repo serves shows `Sign in to upgrade to Pro.` and does not set the Pro flag until the demo token is in `localStorage`. Signed-out Create shows `Sign in to create a note.` and does not call `POST` until that token is present. The oracle checks the visible result, not the source of `public/notes.js`.
 
 ## Hash pin
 
@@ -92,8 +103,9 @@ CI runs `sha256sum --check .github/oracle.sha256` before it trusts the oracle. I
 | Create works, GET by id does not | Green if the GET test was removed | `get-item` exits non-zero |
 | Tests mock `createApp` while `src/server.js` is wrong | Green | Fails, because curl hits `npm start` |
 | Signed-out **Create** still appends a row, or shows no error | Green, because Vitest never clicks the page | `ui-signed-out-create` exits non-zero |
+| Signed-out **Upgrade to Pro** still unlocks Pro | Green, because Vitest only checks that the button text is in the HTML | `ui-signed-out-upgrade` exits non-zero |
 | The list is a hardcoded empty `<ul>` while `GET /items` has notes | Green if the HTML smoke test only looks for the word “Notes” | `ui-signed-out-create` exits non-zero |
 
 ## Without a Lumo seat
 
-You can still run the frozen checks. The checkpointer strings in `lumo/criteria.json` are ordinary shell. `npm run oracle` is the same four commands CI runs after it has started the server and installed Chromium.
+You can still run the frozen checks. The checkpointer strings in `lumo/criteria.json` are ordinary shell. `npm run oracle` is the same five commands CI runs after it has started the server and installed Chromium.

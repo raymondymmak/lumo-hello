@@ -156,11 +156,16 @@ get_item() {
 
 ui_signed_out_create() {
   ensure_server
-  node "${ROOT}/scripts/oracle-ui.mjs"
+  node "${ROOT}/scripts/oracle-ui.mjs" create
+}
+
+ui_signed_out_upgrade() {
+  ensure_server
+  node "${ROOT}/scripts/oracle-ui.mjs" upgrade
 }
 
 usage() {
-  echo "Usage: scripts/oracle.sh {unauth-create|auth-create|get-item|ui-signed-out-create|all}" >&2
+  echo "Usage: scripts/oracle.sh {unauth-create|auth-create|get-item|ui-signed-out-create|ui-signed-out-upgrade|all}" >&2
   exit 2
 }
 
@@ -174,11 +179,13 @@ main() {
     auth-create) auth_create ;;
     get-item) get_item ;;
     ui-signed-out-create) ui_signed_out_create ;;
+    ui-signed-out-upgrade) ui_signed_out_upgrade ;;
     all)
       unauth_create
       auth_create
       get_item
       ui_signed_out_create
+      ui_signed_out_upgrade
       ;;
     *) usage ;;
   esac

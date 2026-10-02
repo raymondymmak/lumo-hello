@@ -24,6 +24,12 @@
     "evidenceRequired": true
   },
   {
+    "statement": "In the Notes UI while signed out, clicking Upgrade to Pro shows a visible error, leaves the plan on Free, and does not unlock Pro.",
+    "verifierType": "MACHINE",
+    "checkpointer": "bash scripts/oracle.sh ui-signed-out-upgrade",
+    "evidenceRequired": true
+  },
+  {
     "statement": "README documents Track A vs Track B (UI-visible) in ≤10 minutes; CI pins scripts/oracle.sh hash.",
     "verifierType": "HUMAN",
     "evidenceRequired": true

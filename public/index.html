@@ -7,12 +7,15 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <p class="demo-banner">CORRECT — Track B</p>
+    <p class="demo-banner">CORRECT — signed-out Upgrade stays on Free</p>
     <main class="sheet">
       <header class="top">
         <div>
           <h1>Notes</h1>
-          <p class="lede">Create a note only when you are signed in.</p>
+          <p class="lede">
+            Upgrade to Pro unlocks unlimited notes. Checkout requires you to be
+            signed in.
+          </p>
         </div>
         <div class="session">
           <p id="auth-status" class="status">Signed out</p>
@@ -20,6 +23,24 @@
           <button id="sign-out" type="button" hidden>Sign out</button>
         </div>
       </header>
+
+      <section id="billing" class="billing" aria-labelledby="billing-heading">
+        <div class="billing-top">
+          <h2 id="billing-heading">Billing</h2>
+          <p id="plan-status" class="plan" data-plan="free">Free</p>
+        </div>
+        <p id="plan-price" class="price">
+          Pro is $12/mo. This checkout is a demo and does not charge a card.
+        </p>
+        <p id="note-allowance">Free includes 3 notes. 3 left.</p>
+        <button id="upgrade" type="button">Upgrade to Pro</button>
+        <div id="pro-panel" class="pro-panel" data-state="locked">
+          <p id="pro-feature" data-state="locked">Unlimited notes — locked</p>
+          <p id="checkout-receipt" class="receipt" hidden></p>
+        </div>
+      </section>
+
+      <p id="error" class="error" role="alert" hidden></p>
 
       <form id="create-form" class="composer">
         <label for="note-name">Name</label>
@@ -34,8 +55,6 @@
         <button id="create" type="submit">Create</button>
       </form>
 
-      <p id="error" class="error" role="alert" hidden></p>
-
       <section class="list-wrap" aria-labelledby="list-heading">
         <h2 id="list-heading">Your notes</h2>
         <p id="empty" class="empty">No notes yet.</p>
@@ -44,8 +63,10 @@
 
       <p class="hint">
         Sign in stores the demo bearer token
-        <code>hello-demo-token</code> in this browser’s local storage. Sign out
-        clears it. Nothing here is a secret.
+        <code>hello-demo-token</code> in this browser’s local storage. Upgrade
+        stores a demo Pro flag under <code>lumo-hello-pro</code>. That flag
+        unlocks unlimited notes only while you are signed in. Sign out locks
+        Pro again. Nothing here is a secret, and nothing is charged.
       </p>
     </main>
     <script src="/notes.js"></script>

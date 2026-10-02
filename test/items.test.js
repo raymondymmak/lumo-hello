@@ -96,5 +96,9 @@ describe("lumo-hello API", () => {
     expect(res.text).toContain("Notes");
     expect(res.text).toContain("Sign in (demo)");
     expect(res.text).toContain("Create");
+    // The button is present in the HTML. This does not click Upgrade while
+    // signed out, so a client that unlocks Pro without a session still passes.
+    expect(res.text).toContain("Upgrade to Pro");
+    expect(res.text).toContain('id="upgrade"');
   });
 });
