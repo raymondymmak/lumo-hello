@@ -18,9 +18,9 @@
     "evidenceRequired": true
   },
   {
-    "statement": "In the Notes UI while signed out, submitting Create shows a visible error and does not add a new note row.",
+    "statement": "On the billing page while signed out, clicking Upgrade to Pro shows a visible error, leaves the plan on Free, and does not unlock Pro.",
     "verifierType": "MACHINE",
-    "checkpointer": "bash scripts/oracle.sh ui-signed-out-create",
+    "checkpointer": "bash scripts/oracle.sh ui-signed-out-upgrade",
     "evidenceRequired": true
   },
   {

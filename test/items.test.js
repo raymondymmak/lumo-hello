@@ -89,12 +89,18 @@ describe("lumo-hello API", () => {
     expect(list.body).toEqual([{ id: created.body.id, name: "demo" }]);
   });
 
-  it("GET / serves the Notes page", async () => {
+  it("GET / serves the billing page", async () => {
     const res = await request(createApp()).get("/");
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toMatch(/html/);
-    expect(res.text).toContain("Notes");
+    expect(res.text).toContain("Billing");
     expect(res.text).toContain("Sign in (demo)");
-    expect(res.text).toContain("Create");
+    // The button is present in the HTML. This does not click Upgrade while
+    // signed out, so a client that unlocks Pro without a session still passes.
+    expect(res.text).toContain("Upgrade to Pro");
+    expect(res.text).toContain('id="upgrade"');
+    expect(res.text).toContain("Pro features");
+    expect(res.text).not.toContain("Your notes");
+    expect(res.text).not.toContain('id="create"');
   });
 });

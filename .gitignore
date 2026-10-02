@@ -1,7 +1,10 @@
 node_modules/
+.vercel/
 coverage/
 npm-debug.log*
 .DS_Store
 test-results/
 playwright-report/
 blob-report/
+.vercel
+.env*
