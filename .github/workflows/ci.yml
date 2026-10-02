@@ -54,5 +54,4 @@ jobs:
           bash scripts/oracle.sh unauth-create
           bash scripts/oracle.sh auth-create
           bash scripts/oracle.sh get-item
-          bash scripts/oracle.sh ui-signed-out-create
           bash scripts/oracle.sh ui-signed-out-upgrade

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Notes</title>
+    <title>Billing</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -11,13 +11,14 @@
     <main class="sheet">
       <header class="top">
         <div>
-          <h1>Notes</h1>
+          <h1>Billing</h1>
           <p class="lede">
-            Upgrade to Pro unlocks unlimited notes. Checkout requires you to be
-            signed in.
+            Upgrade to Pro unlocks the premium workspace. Checkout requires you
+            to be signed in.
           </p>
         </div>
         <div class="session">
+          <p id="pro-badge" class="pro-badge" hidden>Pro</p>
           <p id="auth-status" class="status">Signed out</p>
           <button id="sign-in" type="button">Sign in (demo)</button>
           <button id="sign-out" type="button" hidden>Sign out</button>
@@ -26,49 +27,35 @@
 
       <section id="billing" class="billing" aria-labelledby="billing-heading">
         <div class="billing-top">
-          <h2 id="billing-heading">Billing</h2>
+          <h2 id="billing-heading">Plan</h2>
           <p id="plan-status" class="plan" data-plan="free">Free</p>
         </div>
         <p id="plan-price" class="price">
           Pro is $12/mo. This checkout is a demo and does not charge a card.
         </p>
-        <p id="note-allowance">Free includes 3 notes. 3 left.</p>
         <button id="upgrade" type="button">Upgrade to Pro</button>
         <div id="pro-panel" class="pro-panel" data-state="locked">
-          <p id="pro-feature" data-state="locked">Unlimited notes — locked</p>
+          <p id="pro-feature" data-state="locked">Pro features — locked</p>
+          <ul id="premium-perks" hidden>
+            <li>Priority support</li>
+            <li>Shared workspace</li>
+            <li>Billing history</li>
+          </ul>
           <p id="checkout-receipt" class="receipt" hidden></p>
         </div>
       </section>
 
       <p id="error" class="error" role="alert" hidden></p>
 
-      <form id="create-form" class="composer">
-        <label for="note-name">Name</label>
-        <input
-          id="note-name"
-          name="name"
-          type="text"
-          maxlength="200"
-          autocomplete="off"
-          placeholder="Note name"
-        />
-        <button id="create" type="submit">Create</button>
-      </form>
-
-      <section class="list-wrap" aria-labelledby="list-heading">
-        <h2 id="list-heading">Your notes</h2>
-        <p id="empty" class="empty">No notes yet.</p>
-        <ul id="notes"></ul>
-      </section>
-
       <p class="hint">
         Sign in stores the demo bearer token
         <code>hello-demo-token</code> in this browser’s local storage. Upgrade
         stores a demo Pro flag under <code>lumo-hello-pro</code>. That flag
-        unlocks unlimited notes only while you are signed in. Sign out locks
-        Pro again. Nothing here is a secret, and nothing is charged.
+        shows the Pro badge and opens the premium workspace only while you are
+        signed in. Sign out locks Pro again. Nothing here is a secret, and
+        nothing is charged.
       </p>
     </main>
-    <script src="/notes.js"></script>
+    <script src="/billing.js"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "lumo-hello",
   "version": "0.1.0",
-  "description": "Public lab bench: a visible Notes page, agent-owned unit tests, and a held-out oracle. Not a product.",
+  "description": "Public lab bench: a billing page, agent-owned unit tests, and a held-out oracle. Not a product.",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
