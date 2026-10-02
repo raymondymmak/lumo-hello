@@ -1,21 +1,17 @@
 const TOKEN_KEY = "lumo-hello-token";
 const PRO_KEY = "lumo-hello-pro";
 const DEMO_TOKEN = "hello-demo-token";
-const FREE_NOTE_LIMIT = 3;
 
 const authStatus = document.querySelector("#auth-status");
 const signInButton = document.querySelector("#sign-in");
 const signOutButton = document.querySelector("#sign-out");
-const form = document.querySelector("#create-form");
-const nameInput = document.querySelector("#note-name");
 const errorEl = document.querySelector("#error");
-const list = document.querySelector("#notes");
-const emptyEl = document.querySelector("#empty");
 const planStatus = document.querySelector("#plan-status");
-const noteAllowance = document.querySelector("#note-allowance");
 const upgradeButton = document.querySelector("#upgrade");
 const proPanel = document.querySelector("#pro-panel");
 const proFeature = document.querySelector("#pro-feature");
+const proBadge = document.querySelector("#pro-badge");
+const premiumPerks = document.querySelector("#premium-perks");
 const checkoutReceipt = document.querySelector("#checkout-receipt");
 
 function currentToken() {
@@ -58,54 +54,24 @@ function renderAuth() {
 
 function renderBilling() {
   const pro = isPro();
-  const count = list.querySelectorAll("li").length;
   planStatus.textContent = pro ? "Pro" : "Free";
   planStatus.dataset.plan = pro ? "pro" : "free";
   proPanel.dataset.state = pro ? "unlocked" : "locked";
   proFeature.dataset.state = pro ? "unlocked" : "locked";
-  proFeature.textContent = pro
-    ? "Unlimited notes — unlocked"
-    : "Unlimited notes — locked";
+  proFeature.textContent = pro ? "Pro features — unlocked" : "Pro features — locked";
+  proBadge.hidden = !pro;
+  premiumPerks.hidden = !pro;
   if (pro) {
     checkoutReceipt.hidden = false;
     checkoutReceipt.textContent = "Checkout complete · Pro · $12/mo";
     upgradeButton.disabled = true;
     upgradeButton.textContent = "Pro active";
-    noteAllowance.textContent = "Unlimited notes are on.";
     return;
   }
   checkoutReceipt.hidden = true;
   checkoutReceipt.textContent = "";
   upgradeButton.disabled = false;
   upgradeButton.textContent = "Upgrade to Pro";
-  const left = Math.max(0, FREE_NOTE_LIMIT - count);
-  noteAllowance.textContent = `Free includes ${FREE_NOTE_LIMIT} notes. ${left} left.`;
-}
-
-function renderNotes(items) {
-  list.replaceChildren();
-  for (const item of items) {
-    const li = document.createElement("li");
-    li.dataset.id = item.id;
-    li.textContent = item.name;
-    list.append(li);
-  }
-  emptyEl.hidden = items.length !== 0;
-  renderBilling();
-}
-
-async function refreshList() {
-  const response = await fetch("/items");
-  if (!response.ok) {
-    showError("Could not load notes.");
-    return;
-  }
-  const items = await response.json();
-  if (!Array.isArray(items)) {
-    showError("Could not load notes.");
-    return;
-  }
-  renderNotes(items);
 }
 
 signInButton.addEventListener("click", () => {
@@ -123,52 +89,10 @@ signOutButton.addEventListener("click", () => {
 upgradeButton.addEventListener("click", () => {
   // DEMO — Track A billing miss. DO NOT MERGE.
   // No sign-in check. This click writes lumo-hello-pro and paints Pro,
-  // the $12/mo receipt, and unlimited notes for a signed-out visitor.
+  // the badge, the $12/mo receipt, and the premium workspace.
   localStorage.setItem(PRO_KEY, "true");
   clearError();
   renderBilling();
 });
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const name = nameInput.value;
-  if (!isSignedIn()) {
-    showError("Sign in to create a note.");
-    return;
-  }
-
-  if (!isPro() && list.querySelectorAll("li").length >= FREE_NOTE_LIMIT) {
-    showError("Free plan includes 3 notes. Upgrade to Pro for unlimited notes.");
-    return;
-  }
-
-  clearError();
-  const response = await fetch("/items", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${currentToken()}`,
-    },
-    body: JSON.stringify({ name }),
-  });
-
-  if (!response.ok) {
-    let message = "Could not create note.";
-    try {
-      const body = await response.json();
-      if (body && typeof body.error === "string" && body.error.length > 0) {
-        message = body.error;
-      }
-    } catch {
-      // Keep the fallback message when the body is not JSON.
-    }
-    showError(message);
-    return;
-  }
-
-  nameInput.value = "";
-  await refreshList();
-});
-
 renderAuth();
-refreshList();

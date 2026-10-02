@@ -100,26 +100,15 @@ h2 {
   font-weight: 650;
 }
 
-.composer {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.75rem;
-  align-items: center;
-  margin-top: 1.5rem;
-}
-
-label {
-  font-size: 0.92rem;
-  font-weight: 650;
-}
-
-input {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 0.7rem;
-  font: inherit;
-  background: white;
+.pro-badge {
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--pro);
+  color: var(--accent-ink);
+  font-size: 0.85rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
 }
 
 button {
@@ -176,8 +165,7 @@ button:hover {
   color: var(--accent-ink);
 }
 
-.price,
-#note-allowance {
+.price {
   margin: 0.55rem 0 0;
   color: var(--muted);
   font-size: 0.92rem;
@@ -219,6 +207,18 @@ button:hover {
   color: var(--muted);
 }
 
+#premium-perks {
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+#premium-perks li {
+  padding: 0.4rem 0;
+  border-top: 1px solid rgba(15, 92, 76, 0.2);
+  font-weight: 650;
+}
+
 .receipt {
   margin: 0.45rem 0 0;
   font-weight: 750;
@@ -235,25 +235,6 @@ button:hover {
   font-weight: 650;
 }
 
-.list-wrap {
-  margin-top: 1.5rem;
-}
-
-.empty {
-  margin: 0;
-}
-
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-li {
-  padding: 0.75rem 0.2rem;
-  border-top: 1px solid var(--line);
-}
-
 .hint {
   margin: 1.5rem 0 0;
   font-size: 0.85rem;
@@ -265,8 +246,7 @@ code {
 }
 
 @media (max-width: 640px) {
-  .top,
-  .composer {
+  .top {
     display: grid;
     grid-template-columns: 1fr;
   }
