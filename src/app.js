@@ -140,3 +140,6 @@ export function createApp() {
 
   return app;
 }
+
+// Vercel’s Express preset uses src/app.js as the entry and calls this default export.
+export default createApp();

@@ -4,6 +4,8 @@
 
 The ticket: creating a note requires being signed in. Signed out, Create shows an error and no new row appears. Signed in, Create adds the note to the list.
 
+Try that without cloning. Signed out, type a name and press **Create** on [the correct page](https://lumo-hello-correct.vercel.app) (error, no new row) and [the broken page](https://lumo-hello-broken.vercel.app) (same error, plus a ghost row). See [docs/LIVE_DEMOS.md](docs/LIVE_DEMOS.md).
+
 Agents can look finished while that page is wrong, because they write the tests that grade them. Frozen checks that the agent does not own catch that — including a browser check that clicks Create while signed out.
 
 | Track | Who grades the work | Command | What “green” means |
@@ -127,5 +129,6 @@ scripts/oracle-ui.mjs   Headless browser check used by the oracle
 .github/workflows/ci.yml
 docs/TRACK_A.md
 docs/TRACK_B.md
+docs/LIVE_DEMOS.md    Public correct and broken Notes pages
 lumo/criteria.json      Freeze this with `lumo task criteria set`
 ```
