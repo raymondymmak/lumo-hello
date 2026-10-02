@@ -6,7 +6,7 @@
 
 The ticket: **Upgrade to Pro** is a billing action. Signed out, Upgrade shows an error and the plan stays **Free** (unlimited notes stay locked). Signed in, Upgrade sets a demo Pro flag and unlocks unlimited notes. Creating a note still requires being signed in.
 
-Try that without cloning. Stay signed out and press **Upgrade to Pro** on [the correct page](https://lumo-hello-correct.vercel.app) (error, plan stays Free) and [the broken page](https://lumo-hello-broken.vercel.app) (checkout succeeds and Pro unlocks). See [docs/LIVE_DEMOS.md](docs/LIVE_DEMOS.md).
+Stay signed out and press **Upgrade to Pro** on [the correct page](https://lumo-hello-correct.vercel.app) (error, plan stays Free) and [the broken page](https://lumo-hello-broken.vercel.app) (checkout succeeds and Pro unlocks). See [docs/LIVE_DEMOS.md](docs/LIVE_DEMOS.md). Those URLs show this story after a production deploy of the correct and broken branches.
 
 Agents can look finished while that page is wrong, because they write the tests that grade them. Frozen checks that the agent does not own catch that — including a browser check that clicks Upgrade while signed out.
 
