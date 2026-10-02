@@ -1,14 +1,41 @@
 # Track A demo — signed-out Upgrade unlocks Pro (DO NOT MERGE)
 
-The broken branch is `cursor/billing-pro-broken-effa`. This file on the correct branch describes that twin. The bug is not in this branch.
+This branch is intentional demoware. The Notes page gives a signed-out visitor paid access. `npm test` is green. The held-out billing oracle is red.
 
-Signed out, **Upgrade to Pro** on the broken page still writes the demo Pro flag and unlocks unlimited notes. The header can still say **Signed out** while the plan says **Pro** and the receipt reads `Checkout complete · Pro · $12/mo`. That is paid access for a free session. Create stays signed-in-only. The old ghost-row Create bug is not the headline.
+Signed-out **Upgrade to Pro** writes `lumo-hello-pro=true` and unlocks unlimited notes. The plan flips to **Pro** and the receipt reads `Checkout complete · Pro · $12/mo` while the header still says **Signed out**. Create still requires sign-in. The API still returns **401** without a token, and no unit test was edited to allow that. Vitest never clicks **Upgrade**. `GET /` only checks that the HTML contains `Upgrade to Pro`.
 
-`npm test` exits 0 on that branch. Vitest never clicks **Upgrade**. `GET /` only checks that the HTML contains `Upgrade to Pro`. Track B’s `ui-signed-out-upgrade` oracle is what fails.
+`scripts/oracle.sh`, `scripts/oracle-ui.mjs`, and `.github/oracle.sha256` match the correct branch. `ui-signed-out-upgrade` is what fails.
 
-| Page | URL | Signed out → Upgrade to Pro |
-| --- | --- | --- |
-| Correct | https://lumo-hello-correct.vercel.app | Refuses. Plan stays Free. |
-| Broken | https://lumo-hello-broken.vercel.app | Unlocks Pro. |
+## Reproduce
 
-Do not merge `cursor/billing-pro-broken-effa` into main.
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
+`npm test` exits 0.
+
+Start the page (leave it running):
+
+```bash
+npm start
+```
+
+Open http://127.0.0.1:3847. The header says **Signed out**. Press **Upgrade to Pro**. The plan says **Pro**, unlimited notes unlock, and the checkout receipt is on screen. Reload: Pro is still unlocked, because the flag is in `localStorage`.
+
+With the server still up, or in a fresh shell (the oracle starts the server when `/health` is down):
+
+```bash
+npm run oracle
+```
+
+`unauth-create`, `auth-create`, `get-item`, and `ui-signed-out-create` pass. `ui-signed-out-upgrade` exits non-zero. The same failure on its own:
+
+```bash
+bash scripts/oracle.sh ui-signed-out-upgrade
+```
+
+The oracle prints `FAIL: signed-out Upgrade unlocked Pro` and exits 1.
+
+Do not merge this branch into main. The correct page refuses that click.

@@ -30,10 +30,12 @@ function hasProFlag() {
   return localStorage.getItem(PRO_KEY) === "true";
 }
 
-// Paid access requires the demo session. A leftover Pro flag stays locked
-// until the visitor is signed in.
+// DEMO — Track A billing miss. DO NOT MERGE.
+// The Pro flag alone unlocks paid access. A signed-out Upgrade still
+// completes checkout. Vitest never clicks #upgrade, so `npm test` stays
+// green. Track B's ui-signed-out-upgrade oracle catches the unlock.
 function isPro() {
-  return isSignedIn() && hasProFlag();
+  return hasProFlag();
 }
 
 function showError(message) {
@@ -119,12 +121,9 @@ signOutButton.addEventListener("click", () => {
 });
 
 upgradeButton.addEventListener("click", () => {
-  if (!isSignedIn()) {
-    showError("Sign in to upgrade to Pro.");
-    renderBilling();
-    return;
-  }
-
+  // DEMO — Track A billing miss. DO NOT MERGE.
+  // No sign-in check. This click writes lumo-hello-pro and paints Pro,
+  // the $12/mo receipt, and unlimited notes for a signed-out visitor.
   localStorage.setItem(PRO_KEY, "true");
   clearError();
   renderBilling();

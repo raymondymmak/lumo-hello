@@ -2,6 +2,8 @@
 
 > **Not a product.** This is disposable public demoware: a one-page Notes UI for one ticket and two ways of calling it done. No database, no Stripe, no MindLink. The bearer token `hello-demo-token` is a demo constant, not a secret.
 
+> **This branch is the broken twin. Do not merge.** Signed-out **Upgrade to Pro** still unlocks Pro. `npm test` stays green. See [docs/TRACK_A_DEMO.md](docs/TRACK_A_DEMO.md). The steps below are the correct ticket, which this checkout violates.
+
 The ticket: **Upgrade to Pro** is a billing action. Signed out, Upgrade shows an error and the plan stays **Free** (unlimited notes stay locked). Signed in, Upgrade sets a demo Pro flag and unlocks unlimited notes. Creating a note still requires being signed in.
 
 Try that without cloning. Stay signed out and press **Upgrade to Pro** on [the correct page](https://lumo-hello-correct.vercel.app) (error, plan stays Free) and [the broken page](https://lumo-hello-broken.vercel.app) (checkout succeeds and Pro unlocks). See [docs/LIVE_DEMOS.md](docs/LIVE_DEMOS.md).
