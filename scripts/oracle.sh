@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Held-out Track B oracle for lumo-hello.
-# Talks to a real HTTP server with curl, and drives the Notes page in Chromium.
+# Talks to a real HTTP server with curl, and drives the billing page in Chromium.
 # Does not import the app or its tests.
 # Exit 0 only when the MACHINE statements in lumo/criteria.json hold.
 set -euo pipefail
@@ -154,13 +154,13 @@ get_item() {
   pass "get-item returned 200 id=${id} name=demo"
 }
 
-ui_signed_out_create() {
+ui_signed_out_upgrade() {
   ensure_server
   node "${ROOT}/scripts/oracle-ui.mjs"
 }
 
 usage() {
-  echo "Usage: scripts/oracle.sh {unauth-create|auth-create|get-item|ui-signed-out-create|all}" >&2
+  echo "Usage: scripts/oracle.sh {unauth-create|auth-create|get-item|ui-signed-out-upgrade|all}" >&2
   exit 2
 }
 
@@ -173,12 +173,12 @@ main() {
     unauth-create) unauth_create ;;
     auth-create) auth_create ;;
     get-item) get_item ;;
-    ui-signed-out-create) ui_signed_out_create ;;
+    ui-signed-out-upgrade) ui_signed_out_upgrade ;;
     all)
       unauth_create
       auth_create
       get_item
-      ui_signed_out_create
+      ui_signed_out_upgrade
       ;;
     *) usage ;;
   esac
