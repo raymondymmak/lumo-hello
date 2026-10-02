@@ -27,6 +27,15 @@ body {
     var(--paper);
 }
 
+.demo-banner {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  text-align: center;
+  font-weight: 700;
+  background: #0f5c4c;
+  color: #f7fffc;
+}
+
 .sheet {
   width: min(40rem, calc(100% - 2rem));
   margin: 3rem auto;
